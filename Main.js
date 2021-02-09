@@ -23,14 +23,9 @@ function init() {
 
     map.addLayer(openStreetMapStandard);
 
-    var geolocation = new ol.Geolocation({
-        // enableHighAccuracy must be set to true to have the heading value.
-        trackingOptions: {
-            enableHighAccuracy: true,
-            maxAge: 2000,
-        },
-        projection: view.getProjection(),
-    });
+
+
+
 
 
     var positionFeature = new ol.Feature();
@@ -46,6 +41,15 @@ function init() {
         })
     );
 
+    var geolocation = new ol.Geolocation({
+        // enableHighAccuracy must be set to true to have the heading value.
+        trackingOptions: {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+        },
+        projection: view.getProjection(),
+    });
+
     const activador = document.getElementById("track");
 
     let activaTrackeo;
@@ -57,43 +61,52 @@ function init() {
     })
 
 
+
+
     activador.addEventListener("change", function () {
 
-        if (activador.checked) {
-            activaTrackeo = true;
+        geolocation.setTracking(this.checked);
 
-            console.log("activado");
 
-        } else {
-            activaTrackeo = false;
-            console.log("Desactivado");
-
-        }
-
-        geolocation.setTracking(activaTrackeo); // here the browser may ask for confirmation
-        geolocation.on('change:position', function () {
-
-            if(geolocation.getHeading() == null){
-                console.log("Rotacion indefinida");
-            }else{
-                view.setRotation(geolocation.getHeading());
-            }
-            
-            view.setCenter(geolocation.getPosition());
-            view.setZoom(20);
-            console.log(geolocation.getPosition());
-        });
-
-        geolocation.on('change:heading', function(){
-            view.setRotation(geolocation.getHeading());
-            console.log(geolocation.getHeading());
-        })
-    
-        geolocation.on('error', function () {
-            console.log("No se pudo localizar");
-        })
     });
 
+    // here the browser may ask for confirmation
+    geolocation.on('change:position', function () {
+
+        if (geolocation.getHeading() == null) {
+            console.log("Rotacion indefinida");
+        } else {
+            view.setRotation(geolocation.getHeading());
+        }
+
+        positionFeature.setGeometry(geolocation.getPosition() ? new ol.geom.Point(geolocation.getPosition()) : null);
+
+        view.setCenter(geolocation.getPosition());
+        view.setZoom(20);
+        console.log(geolocation.getPosition());
+    });
+
+    var accuracyFeature = new ol.Feature();
+    geolocation.on('change:accuracyGeometry', function () {
+        accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+    });
+
+    geolocation.on('change:heading', function () {
+        view.setRotation(geolocation.getHeading());
+        console.log(geolocation.getHeading());
+    })
+
+    geolocation.on('error', function () {
+        console.log("No se pudo localizar");
+    })
+
+
+    new ol.layer.Vector({
+        map: map,
+        source: new ol.source.Vector({
+            features: [accuracyFeature, positionFeature],
+        }),
+    });
 
 }
 
