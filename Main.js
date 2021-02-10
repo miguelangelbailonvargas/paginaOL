@@ -96,7 +96,10 @@ function init() {
     });
 
     geolocation.on('change:heading', function () {
-        view.setRotation(geolocation.getHeading());
+        if (document.getElementById("rotar").checked) {
+            view.setRotation(geolocation.getHeading());
+        }
+        
         console.log(geolocation.getHeading());
     })
 
