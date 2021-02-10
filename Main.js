@@ -52,20 +52,18 @@ function init() {
 
     const activador = document.getElementById("track");
 
-    let activaTrackeo;
-
-    map.on('click', function (e) {
-        console.log(e.coordinate);
-
-        view.setCenter(e.coordinate);
-    })
-
-
+    const centrar = document.getElementById("centrar");
 
 
     activador.addEventListener("change", function () {
 
         geolocation.setTracking(this.checked);
+
+        centrar.addEventListener("click", function () {
+            view.setCenter(geolocation.getPosition());
+            view.setZoom(20);
+        })
+
 
 
     });
@@ -73,18 +71,24 @@ function init() {
     // here the browser may ask for confirmation
     geolocation.on('change:position', function () {
 
-        if (geolocation.getHeading() == null) {
+        /*if (geolocation.getHeading() == null) {
             console.log("Rotacion indefinida");
         } else {
             view.setRotation(geolocation.getHeading());
-        }
+        }*/
 
         positionFeature.setGeometry(geolocation.getPosition() ? new ol.geom.Point(geolocation.getPosition()) : null);
 
-        view.setCenter(geolocation.getPosition());
-        view.setZoom(20);
+
+        if (document.getElementById("seguir").checked) {
+            view.setCenter(geolocation.getPosition());
+            view.setZoom(20);
+        }
+
         console.log(geolocation.getPosition());
     });
+
+
 
     var accuracyFeature = new ol.Feature();
     geolocation.on('change:accuracyGeometry', function () {
